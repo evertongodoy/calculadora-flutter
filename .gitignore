@@ -117,3 +117,41 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+target/
+.mvn/
+/target/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Maven / Gradle
+build/
+
+# IDE-specific files
+.vscode/
+.classpath
+.project
+.settings/
+.gitattributes
+
+HELP.md
+mvnw
+mvnw.cmd
+
+# Metadata files
+.metadata
