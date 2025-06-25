@@ -1,122 +1,163 @@
 import 'package:flutter/material.dart';
 
+// Ponto de partida do programa em Dart (e Flutter).
+// É aqui que o Flutter inicia a execução do app.
 void main() {
-  runApp(const MyApp());
+  // runApp 
+    // Função fornecida pelo framework Flutter.
+    // Recebe um widget (geralmente o widget raiz da aplicação) e o insere na árvore principal do app.
+    // É responsável por inicializar o binding entre o motor gráfico do Flutter e a interface do usuário.
+  // const
+    // Um widget customizado representando toda a sua aplicação de calculadora.
+    // Como é marcado com const, isso sinaliza ao Flutter que o widget é imutável (sem mudança de estado) e pode ser otimizado em tempo de compilação — resultando em melhor performance.
+  runApp(const CalculadoraApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// Definindo um widget chamado CalculadoraApp.
+// Ele herda de StatelessWidget, o que significa que não mantém estado interno e é imutável depois de criado
+class CalculadoraApp extends StatelessWidget {
+  // Construtor marcado como const: isso permite que o Flutter otimize esse widget em tempo de compilação, já que suas propriedades não mudam .
+  // super.key passa a Key (identificador opcional) para a classe-pai, ajudando com o gerenciamento de widgets na árvore.
+  const CalculadoraApp({super.key});
 
-  // This widget is the root of your application.
+  // Aqui começa o método build, obrigatório em todos os widgets.
+  // Recebe BuildContext, que carrega informações sobre onde esse widget está na árvore, e deve retornar outro widget que descreva como será renderizado na tela.
   @override
   Widget build(BuildContext context) {
+    // Retorna um MaterialApp: widget de nível superior para apps com estilo Material Design
+    // Ele cuida de tema, navegação (Navigator), internacionalização, rotas, etc.
     return MaterialApp(
-      title: 'Flutter Demo',
+      // Define o título da aplicação: utilizado pelo sistema operacional (ex: título da janela ou gerenciador de tarefas)
+      title: 'Calculadora Flutter',
+      // theme: define o tema visual da sua app (cores, tipografia, estilo de botões).      
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // // cria um esquema de cores coerente com base na cor “seed” fornecida
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 50, 139, 207)),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // Remove o banner “DEBUG” exibido por padrão quando a app está em modo de depuração (debug).
+      debugShowCheckedModeBanner: false,
+      // home define o widget raiz da tela inicial.
+      // Também é marcado como const para otimização.
+      home: const CalculadoraScreen(title: 'Calculadora - SENAC'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
+// Define um novo widget chamado CalculadoraScreen
+// Ele estende StatefulWidget, indicando que possui estado mutável gerenciado internamente
+class CalculadoraScreen extends StatefulWidget {
+  // Construtor const — indica que esse widget é imutável após criado, permitindo otimização.
+  // super.key: repassa o parâmetro key (identificador opcional para gerenciamento na árvore de widgets) para a classe-pai
+  // required this.title: define que o parâmetro title (um String) é obrigatório. Ele também inicializa o campo final title.
+  const CalculadoraScreen({super.key, required this.title});
+  // Declara um campo imutável (final) que armazena o título da tela. Esse valor é definido via construtor e não muda depois.
   final String title;
 
+  // Implementa o método createState() — obrigatório em StatefulWidget.
+  // Ele retorna uma instância da classe _CalculadoraScreenState, que contém a lógica e o estado da tela.
+  // Cada vez que o widget é colocado na árvore, o Flutter chama createState() para construir o estado correspondente
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<CalculadoraScreen> createState() => _CalculadoraScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+// Define a classe de estado para o widget CalculadoraScreen.
+// Ao estender State<CalculadoraScreen>, você associa esse estado ao widget correspondente, permitindo gerenciar e reagir a mudanças.
+class _CalculadoraScreenState extends State<CalculadoraScreen> {
+  
+  // Cria dois controladores para cada TextField: _c1 e _c2.
+  // TextEditingController permite ler, editar e ouvir os textos digitados nos campos
+  final TextEditingController _c1 = TextEditingController();
+  final TextEditingController _c2 = TextEditingController();
+  // Declara um campo privado que armazena o resultado calculado.
+  // Inicialmente vazio ('') e será atualizado dinamicamente com setState().
+  String _resultado = '';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  // Define um método privado (_calcular) que recebe uma operação (+, -, *, /) e executa a lógica da calculadora. 
+  void _calcular(String op) {
+    // Extrai o texto dos controladores e faz o parse para double, permitindo vírgulas como separador decimal.
+    // tryParse retorna null se a entrada for inválida.
+    final n1 = double.tryParse(_c1.text.replaceAll(',', '.'));
+    final n2 = double.tryParse(_c2.text.replaceAll(',', '.'));
+    // Verifica se houve erro de parse (null).
+    if (n1 == null || n2 == null) {
+      // Se sim, usa setState() para atualizar _resultado e re-renderizar a UI , parando a execução com return.
+      setState(() => _resultado = 'Entrada inválida');
+      return;
+    }
+
+    // Executa a operação matemática com base em op
+    // Inclui verificação contra divisão por zero.
+    // Resultado armazenado em res.
+    double res;
+    switch (op) {
+      case '+': res = n1 + n2; break;
+      case '-': res = n1 - n2; break;
+      case '*': res = n1 * n2; break;
+      case '/':
+        if (n2 == 0) {
+          setState(() => _resultado = 'Divisão por zero');
+          return;
+        }
+        res = n1 / n2; break;
+      default: return;
+    }
+    // // Usa setState() para atualizar _resultado com o valor calculado convertido para string.
+    // Isso aciona a reconstrução da UI para refletir o novo resultado
+    setState(() => _resultado = res.toString());
   }
 
+  // Método build() é chamado sempre que há mudanças – inicial ou após setState().
+  // Retorna a estrutura visual atualizada da tela.
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    
+    // Scaffold fornece a estrutura básica da tela: AppBar, corpo, etc.
     return Scaffold(
+      // Define a barra superior com título fixo e cor baseada no tema atual.
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
+        title: const Text('Calculadora'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      // Usa Padding e Column para estruturar os widgets com espaçamento.
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
+          children: [
+            // Primeiro TextField vinculado a _c1.
+            // Permite entrada numérica e exibe um rótulo.
+            TextField(
+              controller: _c1,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Digite um número, ex: 1'),
+            ),
+            //Segundo campo de texto, com as mesmas configurações, mas ligado a _c2.
+            TextField(
+              controller: _c2,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Digite um número, ex: 1'),
+            ),
+            // Cria espaço vertical entre campos e botões.
+            const SizedBox(height: 16),
+            // Linha com quatro botões para as operações. Cada um chama _calcular com o operador correspondente ao ser pressionado.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(onPressed: () => _calcular('+'), child: const Text('+')),
+                ElevatedButton(onPressed: () => _calcular('-'), child: const Text('-')),
+                ElevatedButton(onPressed: () => _calcular('*'), child: const Text('*')),
+                ElevatedButton(onPressed: () => _calcular('/'), child: const Text('/')),
+              ],
+            ),
+            // Espaço adicional antes de exibir o resultado.
+            const SizedBox(height: 24),
+            // Exibe o resultado atual, com estilo destacado. Atualiza automaticamente sempre que _resultado muda.
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              _resultado,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    ); // This trailing comma makes auto-formatting nicer for build methods.
   }
 }
